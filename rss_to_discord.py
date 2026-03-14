@@ -2,6 +2,7 @@ import feedparser
 import requests
 import json
 import os
+import re
 from datetime import datetime
 
 WEBHOOK = "https://discord.com/api/webhooks/1481698681219453181/VxrFmjQS1k3MeF74b9Xm4eN4UJ8zScQFN7vhq-ye7lz1b0iPYDjm4PDWlL4-_0UjSfRG"
@@ -23,15 +24,20 @@ else:
 new_links = []
 
 
-def get_image(entry):
-    if "media_content" in entry:
-        return entry.media_content[0]["url"]
+import re
 
-    if "media_thumbnail" in entry:
-        return entry.media_thumbnail[0]["url"]
+def get_og_image(url):
+    try:
+        headers = {"User-Agent": "Mozilla/5.0"}
+        html = requests.get(url, headers=headers, timeout=10).text
 
-    if "image" in entry:
-        return entry.image["href"]
+        match = re.search(r'<meta property="og:image" content="([^"]+)"', html)
+
+        if match:
+            return match.group(1)
+
+    except:
+        pass
 
     return None
 
@@ -41,9 +47,13 @@ for source, url in feeds.items():
     print(f"Checking feed: {source}")
 
     try:
-        feed = feedparser.parse(url)
+        headers = {"User-Agent": "Mozilla/5.0"}
+        response = requests.get(url, headers=headers, timeout=10)
+
+        feed = feedparser.parse(response.content)
+
     except Exception as e:
-        print(f"Failed to parse {url}: {e}")
+        print(f"Failed to fetch {url}: {e}")
         continue
 
     print(f"{source} entries found:", len(feed.entries))
@@ -57,6 +67,9 @@ for source, url in feeds.items():
             continue
 
         image = get_image(entry)
+
+        if not image:
+            image = get_og_image(entry.link)
 
         description = entry.get("summary", "No description available.")
         description = description.replace("<p>", "").replace("</p>", "")
