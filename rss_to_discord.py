@@ -9,7 +9,7 @@ feeds = {
     "Cricbuzz": "https://www.cricbuzz.com/rss/news.xml",
     "ICC": "https://www.icc-cricket.com/rss"
 }
-
+CACHE_FILE = "posted.json"
 
 if os.path.exists(CACHE_FILE):
     with open(CACHE_FILE, "r") as f:
