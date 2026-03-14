@@ -23,8 +23,17 @@ else:
 
 new_links = []
 
+def get_image(entry):
+    if "media_content" in entry:
+        return entry.media_content[0]["url"]
 
-import re
+    if "media_thumbnail" in entry:
+        return entry.media_thumbnail[0]["url"]
+
+    if "image" in entry:
+        return entry.image["href"]
+
+    return None
 
 def get_og_image(url):
     try:
